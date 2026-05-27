@@ -14,11 +14,12 @@ import uuid
 import random
 
 from pathlib import Path
+import sys
 
-SRC_DIR = Path(__file__).resolve().parent
-ROOT_DIR = SRC_DIR.parent.parent
+SRC_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(SRC_DIR))
 
-DATA_PATH = ROOT_DIR / "data"
+from paths import DATA_PATH
 
 
 def generate_id():
