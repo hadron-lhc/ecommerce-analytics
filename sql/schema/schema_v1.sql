@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS movies;
 CREATE TABLE users (
   user_id UUID PRIMARY KEY,
   sign_up_date TIMESTAMP NOT NULL,
-  gender CHAR(1) NOT NULL,
+  gender VARCHAR(20) NOT NULL CHECK (gender IN ('Male', 'Female')),
   birth_date DATE
 );
 
