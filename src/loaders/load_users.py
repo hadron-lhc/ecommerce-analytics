@@ -13,7 +13,7 @@ sys.path.insert(0, str(SRC_DIR))
 from paths import DATA_PATH
 
 
-def load_users():
+def load_db_config():
     user = os.getenv("DB_USER")
     password = os.getenv("DB_PASSWORD")
     host = os.getenv("DB_HOST")
@@ -24,7 +24,7 @@ def load_users():
 
 
 def connect_db():
-    user, password, host, port, db_name = load_users()
+    user, password, host, port, db_name = load_db_config()
     url_conexion = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
     engine = create_engine(url_conexion)
     return engine
