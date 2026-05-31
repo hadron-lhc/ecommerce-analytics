@@ -44,6 +44,142 @@ def add_activity_level(df):
     return df
 
 
+def determine_amount_sessions(activity_level, activity_range):
+    if activity_level == "low":
+        return random.randint(
+            activity_range["low"]["min"], activity_range["low"]["max"]
+        )
+    elif activity_level == "medium":
+        return random.randint(
+            activity_range["medium"]["min"], activity_range["medium"]["max"]
+        )
+    else:
+        return random.randint(
+            activity_range["high"]["min"], activity_range["high"]["max"]
+        )
+
+
+def generate_random_date(user, range_days):
+    """
+    Generar una fecha aleatoria, de momento completamente
+    aletoria dentro del rango de dias
+    """
+    start_date = datetime.now() - timedelta(days=range_days)
+    end_date = datetime.now()
+    random_date = start_date + (end_date - start_date) * random.random()
+    return random_date.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def select_movie(user, movies):
+    """
+    Seleccionar una película basándose en las preferencias del usuario.
+    De momento solo veremos la edad y el genero como posible indicador
+    de preferencias
+    """
+    # pasar de fecha de nacimiento a edad
+    birth_date = datetime.strptime(user["birth_date"], "%Y-%m-%d")
+    age = (datetime.now() - birth_date).days // 365
+    gender = user["gender"]
+
+    # Filtrar películas por género
+
+    if gender.lower() == "male":
+        filtered_movies = movies[
+            movies["main_genre"].str.contains("Action|Sci-Fi|Anime")
+        ]
+    elif gender.lower() == "female":
+        filtered_movies = movies[
+            movies["main_genre"].str.contains("Romance|Comedy|Drama")
+        ]
+    else:
+        filtered_movies = movies
+
+    # Filtrar películas por edad
+    if age < 18:
+        filtered_movies = filtered_movies[
+            filtered_movies["main_genre"].str.contains("Animation|Anime|Action|Horror")
+        ]
+    elif age < 35:
+        filtered_movies = filtered_movies[
+            filtered_movies["main_genre"].str.contains("Action|Comedy|Sci-Fi|Horror")
+        ]
+    else:
+        filtered_movies = filtered_movies[
+            filtered_movies["main_genre"].str.contains("Drama|Romance")
+        ]
+
+    if filtered_movies.empty:
+        return movies.sample(1).iloc[0]
+    else:
+        return filtered_movies.sample(1).iloc[0]
+
+
+def generate_watch_time(user, date, movie):
+    """
+    Generar un tiempo de visualización basado en la duración de la película
+    y el comportamiento del usuario.
+    """
+    base_watch_time = movie["duration_minutes"] * random.uniform(0.5, 1.0)
+
+    if user["activity_level"] == "high":
+        return int(base_watch_time * random.uniform(0.8, 1.0))
+    elif user["activity_level"] == "medium":
+        return int(base_watch_time * random.uniform(0.6, 0.9))
+    else:
+        return int(base_watch_time * random.uniform(0.4, 0.8))
+
+
+def determine_completed(watch_time, duration):
+    """
+    Determinar si la película se completó o no basándose en el tiempo de visualización
+    y la duración de la película.
+    """
+    if watch_time >= duration * 0.9:
+        return 1
+    else:
+        return 0
+
+
+def select_language(user, movie):
+    """
+    Seleccionar el idioma de visualizacion, de momento es puramente random
+    Solo tendremos ciertas preferencias por el ingles y el japones en el anime
+    """
+    if "Anime" in movie["main_genre"]:
+        return random.choices(["English", "Japanese"], weights=[0.4, 0.6], k=1)[0]
+    else:
+        return random.choices(
+            ["English", "Spanish", "French"], weights=[0.6, 0.3, 0.1], k=1
+        )[0]
+
+
+def determine_subtitles(user, language):
+    """
+    Mas probable que los substitulos esten activados si el idioma no es ingles
+    y si el usuario es mayor a 35 años
+    """
+    age = (
+        datetime.now() - datetime.strptime(user["birth_date"], "%Y-%m-%d")
+    ).days // 365
+    if language != "English" or age > 35:
+        return random.choices([1, 0], weights=[0.7, 0.3], k=1)[0]
+    else:
+        return random.choices([1, 0], weights=[0.3, 0.7], k=1)[0]
+
+
+def select_video_quality(user):
+    """
+    Seleccionar la calidad de video basándose en el nivel de actividad del usuario.
+    Los usuarios con mayor actividad podrían preferir una calidad de video más alta.
+    """
+    if user["activity_level"] == "high":
+        return random.choices([1080, 720, 480], weights=[0.7, 0.2, 0.1], k=1)[0]
+    elif user["activity_level"] == "medium":
+        return random.choices([720, 480, 360], weights=[0.5, 0.3, 0.2], k=1)[0]
+    else:
+        return random.choices([480, 360, 240], weights=[0.4, 0.4, 0.2], k=1)[0]
+
+
 def main():
     users = pd.read_csv(DATA_PATH / "raw/users_v1.csv")
     movies = pd.read_csv(DATA_PATH / "raw/movies_v1.csv")
@@ -57,12 +193,35 @@ def main():
     range_days = 720
 
     users = add_activity_level(users)
-
-    print(users.head())
-    print(movies.head())
-
     events = []
-    amount = 500
+
+    for user in users.to_dict(orient="records"):
+        amount_sessions = determine_amount_sessions(
+            user["activity_level"], activity_range
+        )
+
+        for _ in range(amount_sessions):
+            date = generate_random_date(user, range_days)
+            movie = select_movie(user, movies)
+            watch_time = generate_watch_time(user, date, movie)
+            completed = determine_completed(watch_time, movie["duration_minutes"])
+            language = select_language(user, movie)
+            subtitles_enabled = determine_subtitles(user, language)
+            video_quality = select_video_quality(user)
+
+            event = {
+                "viewing_session_id": generate_id(),
+                "user_id": user["user_id"],
+                "movie_id": movie["movie_id"],
+                "started_at": date,
+                "watch_time_minutes": watch_time,
+                "completed": completed,
+                "language": language,
+                "subtitles_enabled": subtitles_enabled,
+                "video_quality": video_quality,
+            }
+
+            events.append(event)
 
     df_events = pd.DataFrame(events)
 
