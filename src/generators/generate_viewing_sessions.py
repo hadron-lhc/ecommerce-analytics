@@ -31,29 +31,45 @@ def generate_id():
     return str(uuid.uuid4())
 
 
+def add_activity_level(df):
+    df = df.copy()
+
+    levels = ["low", "medium", "high"]
+    level_weights = [20, 50, 30]
+
+    chosen_level = random.choices(levels, weights=level_weights, k=len(df))
+
+    df["activity_level"] = chosen_level
+
+    return df
+
+
 def main():
     users = pd.read_csv(DATA_PATH / "raw/users_v1.csv")
     movies = pd.read_csv(DATA_PATH / "raw/movies_v1.csv")
 
+    activity_range = {  # Sesiones al año
+        "low": {"min": 50, "max": 120},
+        "medium": {"min": 120, "max": 250},
+        "high": {"min": 250, "max": 500},
+    }
+
+    range_days = 720
+
+    users = add_activity_level(users)
+
     print(users.head())
     print(movies.head())
 
-    """
     events = []
     amount = 500
-
-    for _ in range(amount):
-        id = generate_id()
-
-        event = {}
-
-        events.append(event)
 
     df_events = pd.DataFrame(events)
 
     print(df_events.info())
     print(df_events.head())
 
+    """
     DATA_PATH.mkdir(parents=True, exist_ok=True)
     events_data_path = DATA_PATH / "raw/events_v1.csv"
 

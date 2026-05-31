@@ -68,9 +68,9 @@ def generate_title(main_genre) -> str:
 def generate_main_genre() -> str:
     genres = list(GENERES_AND_DISTRIBUTION.keys())
     weigth_distribution = list(GENERES_AND_DISTRIBUTION.values())
-    choosen_genre = random.choices(genres, weights=weigth_distribution, k=1)[0]
+    chosen_genre = random.choices(genres, weights=weigth_distribution, k=1)[0]
 
-    return choosen_genre
+    return chosen_genre
 
 
 def generate_genres(main_genre) -> list[str]:
@@ -79,9 +79,9 @@ def generate_genres(main_genre) -> list[str]:
     size_options = [1, 2, 3]
     size_weights = [60, 30, 10]
 
-    choosen_size = random.choices(size_options, weights=size_weights, k=1)[0]
+    chosen_size = random.choices(size_options, weights=size_weights, k=1)[0]
 
-    genres = random.sample(items, k=choosen_size)
+    genres = random.sample(items, k=chosen_size)
 
     return genres
 
