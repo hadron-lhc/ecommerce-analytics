@@ -70,48 +70,46 @@ def generate_random_date(user, range_days):
     return random_date.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def select_movie(user, movies):
+def select_movie(user, movies, empty_count):
     """
     Seleccionar una película basándose en las preferencias del usuario.
     De momento solo veremos la edad y el genero como posible indicador
     de preferencias
     """
     # pasar de fecha de nacimiento a edad
-    birth_date = datetime.strptime(user["birth_date"], "%Y-%m-%d")
-    age = (datetime.now() - birth_date).days // 365
+    age = user["age"]
     gender = user["gender"]
 
     # Filtrar películas por género
 
+    filters = ""
+
     if gender.lower() == "male":
-        filtered_movies = movies[
-            movies["main_genre"].str.contains("Action|Sci-Fi|Anime")
-        ]
+        filters += "Action|Sci-Fi|Horror|Animation|Anime"
     elif gender.lower() == "female":
-        filtered_movies = movies[
-            movies["main_genre"].str.contains("Romance|Comedy|Drama")
-        ]
+        filters += "Romance|Drama|Comedy|Animation|Anime"
     else:
-        filtered_movies = movies
+        filters += "Action|Comedy|Sci-Fi|Horror|Romance|Drama|Animation|Anime"
 
     # Filtrar películas por edad
     if age < 18:
-        filtered_movies = filtered_movies[
-            filtered_movies["main_genre"].str.contains("Animation|Anime|Action|Horror")
-        ]
+        filters += "Animation|Anime|Comedy"
     elif age < 35:
-        filtered_movies = filtered_movies[
-            filtered_movies["main_genre"].str.contains("Action|Comedy|Sci-Fi|Horror")
-        ]
+        filters += "Action|Sci-Fi|Horror|Comedy"
     else:
-        filtered_movies = filtered_movies[
-            filtered_movies["main_genre"].str.contains("Drama|Romance")
-        ]
+        filters += "Drama|Romance|Comedy"
+
+    filtered_movies = movies[
+        movies["main_genre"].str.contains(filters, case=False, na=False)
+    ]
 
     if filtered_movies.empty:
-        return movies.sample(1).iloc[0]
+        empty_count += 1
+
+    if filtered_movies.empty:
+        return movies.sample(1).iloc[0], empty_count
     else:
-        return filtered_movies.sample(1).iloc[0]
+        return filtered_movies.sample(1).iloc[0], empty_count
 
 
 def generate_watch_time(user, date, movie):
@@ -158,10 +156,7 @@ def determine_subtitles(user, language):
     Mas probable que los substitulos esten activados si el idioma no es ingles
     y si el usuario es mayor a 35 años
     """
-    age = (
-        datetime.now() - datetime.strptime(user["birth_date"], "%Y-%m-%d")
-    ).days // 365
-    if language != "English" or age > 35:
+    if language != "English" or user["age"] > 35:
         return random.choices([1, 0], weights=[0.7, 0.3], k=1)[0]
     else:
         return random.choices([1, 0], weights=[0.3, 0.7], k=1)[0]
@@ -193,7 +188,12 @@ def main():
     range_days = 720
 
     users = add_activity_level(users)
+    users["age"] = users["birth_date"].apply(
+        lambda x: (datetime.now() - datetime.strptime(x, "%Y-%m-%d")).days // 365
+    )
     events = []
+
+    empty_count = 0
 
     for user in users.to_dict(orient="records"):
         amount_sessions = determine_amount_sessions(
@@ -202,7 +202,7 @@ def main():
 
         for _ in range(amount_sessions):
             date = generate_random_date(user, range_days)
-            movie = select_movie(user, movies)
+            movie, empty_count = select_movie(user, movies, empty_count)
             watch_time = generate_watch_time(user, date, movie)
             completed = determine_completed(watch_time, movie["duration_minutes"])
             language = select_language(user, movie)
@@ -225,8 +225,8 @@ def main():
 
     df_events = pd.DataFrame(events)
 
-    print(df_events.info())
-    print(df_events.head())
+    print(f"Total eventos generados: {len(df_events)}")
+    print(f"Total usuarios sin películas filtradas: {empty_count}")
 
     """
     DATA_PATH.mkdir(parents=True, exist_ok=True)
