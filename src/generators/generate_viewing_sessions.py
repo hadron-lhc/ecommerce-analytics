@@ -225,8 +225,11 @@ def main():
 
     df_events = pd.DataFrame(events)
 
-    print(f"Total eventos generados: {len(df_events)}")
-    print(f"Total usuarios sin películas filtradas: {empty_count}")
+    print(df_events.shape)
+
+    print(df_events["completed"].value_counts(normalize=True))
+    print(df_events.groupby("movie_id").size().describe())
+    print(df_events.groupby("user_id").size().describe())
 
     """
     DATA_PATH.mkdir(parents=True, exist_ok=True)
