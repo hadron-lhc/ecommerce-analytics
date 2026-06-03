@@ -18,6 +18,8 @@ import pandas as pd
 import uuid
 import random
 
+from config import USERS_PREFERENCES
+
 from pathlib import Path
 import sys
 
@@ -40,6 +42,19 @@ def add_activity_level(df):
     chosen_level = random.choices(levels, weights=level_weights, k=len(df))
 
     df["activity_level"] = chosen_level
+
+    return df
+
+
+def add_favorite_genre(df):
+    df = df.copy()
+
+    genres = list(USERS_PREFERENCES.keys())
+    genre_weights = list(USERS_PREFERENCES.values())
+    normalize_wieghts = [k * 0.01 for k in genre_weights]
+
+    chosen_genre = random.choices(genres, weights=normalize_wieghts, k=len(df))
+    df["favorite_genre"] = chosen_genre
 
     return df
 
@@ -70,46 +85,32 @@ def generate_random_date(user, range_days):
     return random_date.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def select_movie(user, movies, empty_count):
+def select_movie(user, movies):
     """
     Seleccionar una película basándose en las preferencias del usuario.
-    De momento solo veremos la edad y el genero como posible indicador
-    de preferencias
+    En este caso, en la columna user["favorite_genre"]
     """
-    # pasar de fecha de nacimiento a edad
-    age = user["age"]
-    gender = user["gender"]
 
-    # Filtrar películas por género
+    favorite_genre = user["favorite_genre"]
 
-    filters = ""
+    favorite_movies = movies[movies["main_genre"] == favorite_genre]
 
-    if gender.lower() == "male":
-        filters += "Action|Sci-Fi|Horror|Animation|Anime"
-    elif gender.lower() == "female":
-        filters += "Romance|Drama|Comedy|Animation|Anime"
-    else:
-        filters += "Action|Comedy|Sci-Fi|Horror|Romance|Drama|Animation|Anime"
+    if random.random() < 0.7 and not favorite_movies.empty:
+        return favorite_movies.sample(n=1).iloc[0]
 
-    # Filtrar películas por edad
-    if age < 18:
-        filters += "Animation|Anime|Comedy"
-    elif age < 35:
-        filters += "Action|Sci-Fi|Horror|Comedy"
-    else:
-        filters += "Drama|Romance|Comedy"
-
-    filtered_movies = movies[
-        movies["main_genre"].str.contains(filters, case=False, na=False)
+    other_movies = movies[movies["main_genre"] != favorite_genre]
+    genres = other_movies["main_genre"].unique()
+    genre_weights = [
+        USERS_PREFERENCES[genre] for genre in genres if genre != favorite_genre
     ]
+    normalize_weights = [k * 0.01 for k in genre_weights]
 
-    if filtered_movies.empty:
-        empty_count += 1
+    selected_genre = random.choices(genres, weights=normalize_weights, k=1)[0]
+    selected_movie = (
+        other_movies[other_movies["main_genre"] == selected_genre].sample(n=1).iloc[0]
+    )
 
-    if filtered_movies.empty:
-        return movies.sample(1).iloc[0], empty_count
-    else:
-        return filtered_movies.sample(1).iloc[0], empty_count
+    return selected_movie
 
 
 def generate_watch_time(user, date, movie):
@@ -117,14 +118,14 @@ def generate_watch_time(user, date, movie):
     Generar un tiempo de visualización basado en la duración de la película
     y el comportamiento del usuario.
     """
-    base_watch_time = movie["duration_minutes"] * random.uniform(0.5, 1.0)
+    base_watch_time = movie["duration_minutes"] * random.uniform(0.92, 1.0)
 
     if user["activity_level"] == "high":
-        return int(base_watch_time * random.uniform(0.8, 1.0))
+        return int(base_watch_time * random.uniform(0.85, 1.0))
     elif user["activity_level"] == "medium":
-        return int(base_watch_time * random.uniform(0.6, 0.9))
+        return int(base_watch_time * random.uniform(0.80, 1.0))
     else:
-        return int(base_watch_time * random.uniform(0.4, 0.8))
+        return int(base_watch_time * random.uniform(0.75, 1.0))
 
 
 def determine_completed(watch_time, duration):
@@ -168,11 +169,11 @@ def select_video_quality(user):
     Los usuarios con mayor actividad podrían preferir una calidad de video más alta.
     """
     if user["activity_level"] == "high":
-        return random.choices([1080, 720, 480], weights=[0.7, 0.2, 0.1], k=1)[0]
+        return random.choices([1080, 720, 480], weights=[0.9, 0.1, 0.05], k=1)[0]
     elif user["activity_level"] == "medium":
-        return random.choices([720, 480, 360], weights=[0.5, 0.3, 0.2], k=1)[0]
+        return random.choices([1080, 720, 480], weights=[0.7, 0.2, 0.1], k=1)[0]
     else:
-        return random.choices([480, 360, 240], weights=[0.4, 0.4, 0.2], k=1)[0]
+        return random.choices([1080, 720, 480], weights=[0.5, 0.4, 0.1], k=1)[0]
 
 
 def main():
@@ -188,12 +189,12 @@ def main():
     range_days = 720
 
     users = add_activity_level(users)
+    users = add_favorite_genre(users)
+
     users["age"] = users["birth_date"].apply(
         lambda x: (datetime.now() - datetime.strptime(x, "%Y-%m-%d")).days // 365
     )
     events = []
-
-    empty_count = 0
 
     for user in users.to_dict(orient="records"):
         amount_sessions = determine_amount_sessions(
@@ -202,7 +203,7 @@ def main():
 
         for _ in range(amount_sessions):
             date = generate_random_date(user, range_days)
-            movie, empty_count = select_movie(user, movies, empty_count)
+            movie = select_movie(user, movies)
             watch_time = generate_watch_time(user, date, movie)
             completed = determine_completed(watch_time, movie["duration_minutes"])
             language = select_language(user, movie)
@@ -225,19 +226,13 @@ def main():
 
     df_events = pd.DataFrame(events)
 
-    print(df_events.shape)
+    print(df_events.info())
 
-    print(df_events["completed"].value_counts(normalize=True))
-    print(df_events.groupby("movie_id").size().describe())
-    print(df_events.groupby("user_id").size().describe())
-
-    """
     DATA_PATH.mkdir(parents=True, exist_ok=True)
-    events_data_path = DATA_PATH / "raw/events_v1.csv"
+    events_data_path = DATA_PATH / "raw/viewing_sessions_v1.csv"
 
     df_events.to_csv(events_data_path, index=False, encoding="utf-8")
     print(f"\nGuardado correctamente en: {events_data_path}")
-    """
 
 
 if __name__ == "__main__":

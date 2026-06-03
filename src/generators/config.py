@@ -10,6 +10,18 @@ GENERES_AND_DISTRIBUTION = {
     "Short Film": 1,
 }
 
+USERS_PREFERENCES = {
+    "Action": 25,
+    "Drama": 15,
+    "Comedy": 10,
+    "Horror": 15,
+    "Romance": 15,
+    "Anime": 10,
+    "Animation": 7,
+    "Documentary": 2,
+    "Short Film": 1,
+}
+
 
 SUBGENRES = {
     "Action": [
