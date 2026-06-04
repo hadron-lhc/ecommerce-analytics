@@ -1,15 +1,15 @@
 """
-Generar eventos diarios, cada evento cuenta con:
+Generar sesiones de visualización, cada sesión cuenta con:
 
-    - viewing_session_id: int
-    - event_id: int
-    - movie_id: int
-    - started_at: date-time
-    - watch_time_minutes: INT
-    - completed: int (1/0)
+    - viewing_session_id: uuid (str)
+    - user_id: uuid (str)
+    - movie_id: uuid (str)
+    - started_at: datetime (str)
+    - watch_time_minutes: int
+    - completed: int (0/1)
     - language: string
-    - subtitles_enabled: int (1/0)
-    - video_quality: int
+    - subtitles_enabled: int (0/1)
+    - video_quality: string (Low/Medium/High)
     - playback_speed: float
 """
 
@@ -163,17 +163,24 @@ def determine_subtitles(user, language):
         return random.choices([1, 0], weights=[0.3, 0.7], k=1)[0]
 
 
+def generate_playback_speed():
+    speeds = [0.5, 0.75, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.5, 2.0]
+    weights = [1, 2, 3, 5, 8, 30, 10, 8, 5, 5, 3, 2, 1]
+    return random.choices(speeds, weights=weights, k=1)[0]
+
+
 def select_video_quality(user):
     """
     Seleccionar la calidad de video basándose en el nivel de actividad del usuario.
     Los usuarios con mayor actividad podrían preferir una calidad de video más alta.
     """
+    qualities = ["High", "Medium", "Low"]
     if user["activity_level"] == "high":
-        return random.choices([1080, 720, 480], weights=[0.9, 0.1, 0.05], k=1)[0]
+        return random.choices(qualities, weights=[0.9, 0.1, 0.05], k=1)[0]
     elif user["activity_level"] == "medium":
-        return random.choices([1080, 720, 480], weights=[0.7, 0.2, 0.1], k=1)[0]
+        return random.choices(qualities, weights=[0.7, 0.2, 0.1], k=1)[0]
     else:
-        return random.choices([1080, 720, 480], weights=[0.5, 0.4, 0.1], k=1)[0]
+        return random.choices(qualities, weights=[0.5, 0.4, 0.1], k=1)[0]
 
 
 def main():
@@ -210,6 +217,8 @@ def main():
             subtitles_enabled = determine_subtitles(user, language)
             video_quality = select_video_quality(user)
 
+            playback_speed = generate_playback_speed()
+
             event = {
                 "viewing_session_id": generate_id(),
                 "user_id": user["user_id"],
@@ -220,6 +229,7 @@ def main():
                 "language": language,
                 "subtitles_enabled": subtitles_enabled,
                 "video_quality": video_quality,
+                "playback_speed": playback_speed,
             }
 
             events.append(event)
