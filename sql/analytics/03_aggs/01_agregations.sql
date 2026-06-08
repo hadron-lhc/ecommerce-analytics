@@ -132,3 +132,46 @@ FROM viewing_session v
 JOIN users u
   ON v.user_id = u.user_id
 GROUP BY u.gender;
+
+-- Usuarios que vieron mas de x películas distintas
+WITH movies_per_user AS (
+  SELECT
+    u.user_id,
+    COUNT(v.movie_id) AS cantidad_peliculas
+  FROM viewing_session v
+  INNER JOIN users u ON v.user_id = u.user_id
+  GROUP BY u.user_id
+)
+SELECT
+  COUNT(user_id) as cantidad_users
+FROM movies_per_user
+WHERE cantidad_peliculas > 200; -- Valor de x = 200
+
+-- Películas que nunca fueron vistas
+WITH views_per_movie AS (
+  SELECT
+    m.title,
+    m.movie_id,
+    COUNT(*) AS views
+  FROM viewing_session v
+  INNER JOIN movies m ON v.movie_id = m.movie_id
+  GROUP BY m.movie_id
+)
+SELECT
+  title
+FROM views_per_movie
+WHERE views = 0;
+
+-- Usuarios que nunca completaron una película
+WITH completed_per_user AS (
+  SELECT
+    u.user_id,
+    SUM(v.completed) as cantidad_completados
+  FROM viewing_session v
+  INNER JOIN users u
+    ON v.user_id = u.user_id
+  GROUP BY u.user_id
+)
+SELECT user_id
+FROM completed_per_user
+WHERE cantidad_completados = 0;
