@@ -61,31 +61,3 @@ SELECT
 FROM ranked
 WHERE rnk = 1
 ORDER BY main_genre;
-
--- Pelicula mas vista en cada genero
-WITH views_per_movie AS (
-  SELECT
-    m.main_genre,
-    m.movie_id,
-    m.title,
-    COUNT(*) AS cantidad
-  FROM viewing_session vs
-  JOIN movies m ON vs.movie_id = m.movie_id
-  GROUP BY m.main_genre, m.movie_id, m.title
-),
-ranked AS (
-  SELECT
-    main_genre,
-    movie_id,
-    title,
-    cantidad,
-    RANK() OVER (PARTITION BY main_genre ORDER BY cantidad DESC) AS rnk
-  FROM views_per_movie
-)
-SELECT
-  main_genre,
-  title,
-  cantidad
-FROM ranked
-WHERE rnk = 1
-ORDER BY main_genre;
