@@ -84,4 +84,3 @@ SELECT
 FROM top
 WHERE rnk = 2;
 
-
