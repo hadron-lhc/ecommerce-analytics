@@ -84,3 +84,49 @@ SELECT
 FROM top
 WHERE rnk = 2;
 
+
+-- Por cada usuario obtener su session
+WITH base AS (
+  SELECT
+    user_id,
+    MIN(started_at) as primer_fecha
+  FROM viewing_session
+  GROUP BY user_id
+)
+SELECT
+  user_id,
+  primer_fecha
+FROM base
+ORDER BY primer_fecha;
+
+
+-- Por cada usuario obtener su ultima session
+WITH base AS (
+  SELECT
+    user_id,
+    MAX(started_at) AS ultima_sesion
+  FROM viewing_session
+  GROUP BY user_id
+)
+SELECT
+  user_id,
+  ultima_sesion
+FROM base
+ORDER BY ultima_sesion DESC;
+
+
+-- Diferencia de dias entre sesiones consecutivas
+WITH base AS (
+  SELECT
+    started_at AS sesion_actual,
+    LAG(started_at, 1) OVER (
+      PARTITION BY user_id
+      ORDER BY started_at ASC
+    ) AS sesion_anterior
+  FROM viewing_session
+)
+SELECT
+  sesion_actual,
+  sesion_anterior,
+  (sesion_actual::date - sesion_anterior::date) AS dias
+FROM base;
