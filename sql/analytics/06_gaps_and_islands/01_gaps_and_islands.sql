@@ -23,3 +23,7 @@ SELECT
 FROM crear_islas
 GROUP BY user_id, fecha_base_isla
 ORDER BY user_id, desde_fecha;
+
+-- Calcular la racha máxima de cada usuario
+
+
