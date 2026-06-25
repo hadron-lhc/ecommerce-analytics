@@ -1,4 +1,5 @@
--- Encontrar días consecutivos de actividad por usuario
+-- Exercise 39: Consecutive active days per user (Gaps and Islands)
+-- Concepts: DISTINCT, ROW_NUMBER, PARTITION BY, date subtraction with INTERVAL, GROUP BY, MIN, MAX
 WITH fechas_unicas AS (
   SELECT DISTINCT
     user_id,
@@ -24,7 +25,8 @@ FROM crear_islas
 GROUP BY user_id, fecha_base_isla
 ORDER BY user_id, desde_fecha;
 
--- Calcular la racha máxima de cada usuario
+-- Exercise 40: Maximum streak per user
+-- Concepts: Multiple CTEs (WITH x3), DISTINCT, ROW_NUMBER, PARTITION BY, INTERVAL, GROUP BY, MAX
 WITH fechas_unicas AS (
   SELECT DISTINCT
     user_id,
@@ -55,8 +57,8 @@ FROM encontrar_maximo
 GROUP BY user_id
 ORDER BY maxima_racha DESC;
 
-
--- Encontrar usuarios con rachas mayores a 7 días
+-- Exercise 41: Users with streaks of exactly 7 days
+-- Concepts: Multiple CTEs (WITH x3), DISTINCT, ROW_NUMBER, PARTITION BY, INTERVAL, GROUP BY, WHERE
 WITH fechas_unicas AS (
   SELECT DISTINCT
     user_id,
@@ -86,7 +88,8 @@ FROM encontrar_longitud
 WHERE longitud_racha = 7
 GROUP BY user_id;
 
--- top 10 usuarios por racha histórica
+-- Exercise 42: Top 10 users by historical streak
+-- Concepts: Multiple CTEs (WITH x3), DISTINCT, ROW_NUMBER, PARTITION BY, INTERVAL, GROUP BY, MAX, ORDER BY DESC, LIMIT
 WITH fechas_unicas AS (
   SELECT DISTINCT
     user_id,

@@ -1,4 +1,5 @@
--- Edad promedio de los usuarios
+-- Exercise 19: Average user age
+-- Concepts: CTE (WITH), EXTRACT, AGE, AVG, ROUND
 WITH age_per_user AS (
   SELECT
     user_id,
@@ -11,7 +12,8 @@ SELECT
   ROUND(AVG(age), 2) AS average_age
 FROM age_per_user;
 
--- Cantidad de usuarios por rango etario
+-- Exercise 20: User count by age range
+-- Concepts: Multiple CTEs (WITH x2), EXTRACT, AGE, CASE, GROUP BY, ORDER BY
 WITH age_per_user AS (
   SELECT
     user_id,
@@ -39,7 +41,8 @@ FROM base
 GROUP BY age_range
 ORDER BY age_range;
 
--- Genero favorito por rango etario
+-- Exercise 21: Favorite genre by age range
+-- Concepts: Multiple CTEs (WITH x4), EXTRACT, AGE, CASE, JOIN, GROUP BY, RANK, PARTITION BY
 WITH age_per_user AS (
   SELECT
     user_id,
@@ -89,7 +92,8 @@ FROM ranked
 WHERE rnk = 1
 ORDER BY age_range;
 
--- Completetion rate por rango etario
+-- Exercise 22: Completion rate by age range
+-- Concepts: Multiple CTEs (WITH x3), EXTRACT, AGE, CASE, JOIN, SUM, GROUP BY, ORDER BY
 WITH age_per_user AS (
   SELECT
     user_id,
@@ -124,7 +128,8 @@ SELECT
 FROM completetion_rate
 ORDER BY age_range;
 
--- Watch time promedio por genero de usuario
+-- Exercise 23: Average watch time by user gender
+-- Concepts: JOIN, AVG, ROUND, GROUP BY
 SELECT
   u.gender AS genero,
   ROUND(AVG(v.watch_time_minutes),2) AS watch_time_promedio
@@ -133,7 +138,8 @@ JOIN users u
   ON v.user_id = u.user_id
 GROUP BY u.gender;
 
--- Usuarios que vieron mas de x películas distintas
+-- Exercise 24: Users who watched more than 200 distinct movies
+-- Concepts: CTE (WITH), INNER JOIN, COUNT, GROUP BY, WHERE
 WITH movies_per_user AS (
   SELECT
     u.user_id,
@@ -145,9 +151,10 @@ WITH movies_per_user AS (
 SELECT
   COUNT(user_id) as cantidad_users
 FROM movies_per_user
-WHERE cantidad_peliculas > 200; -- Valor de x = 200
+WHERE cantidad_peliculas > 200;
 
--- Películas que nunca fueron vistas
+-- Exercise 25: Movies that were never watched
+-- Concepts: CTE (WITH), INNER JOIN, COUNT, GROUP BY, WHERE
 WITH views_per_movie AS (
   SELECT
     m.title,
@@ -162,7 +169,8 @@ SELECT
 FROM views_per_movie
 WHERE views = 0;
 
--- Usuarios que nunca completaron una película
+-- Exercise 26: Users who never completed a movie
+-- Concepts: CTE (WITH), INNER JOIN, SUM, GROUP BY, WHERE
 WITH completed_per_user AS (
   SELECT
     u.user_id,

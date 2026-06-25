@@ -1,4 +1,5 @@
--- Encontrar películas cuyo completion rate supera el promedio
+-- Exercise 30: Movies whose completion rate exceeds the global average
+-- Concepts: Multiple CTEs (WITH x2), CROSS JOIN (x2), SUM, COUNT, GROUP BY, WHERE
 WITH base AS (
   SELECT
     (SUM(completed)*100/COUNT(*)) AS completion_rate_global
@@ -19,7 +20,8 @@ CROSS JOIN base b
 CROSS JOIN base_local bl
 WHERE completion_rate_pelicula > completion_rate_global;
 
--- Pelicula mas vista en cada genero
+-- Exercise 31: Most viewed movie in each genre
+-- Concepts: Multiple CTEs (WITH x2), JOIN, COUNT, GROUP BY, RANK, PARTITION BY, ORDER BY
 WITH views_per_movie AS (
   SELECT
     m.main_genre,

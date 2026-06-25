@@ -1,4 +1,5 @@
--- Watch time promedio por genero
+-- Exercise 15: Average watch time per genre
+-- Concepts: LEFT JOIN, AVG, ROUND, GROUP BY, ORDER BY DESC
 SELECT
   m.main_genre,
   ROUND(AVG(v.watch_time_minutes), 2) AS watch_time_promedio
@@ -9,7 +10,8 @@ LEFT JOIN viewing_session v
 GROUP BY m.main_genre
 ORDER BY watch_time_promedio DESC;
 
--- Competition rate por genero
+-- Exercise 16: Completion rate per genre
+-- Concepts: CTE (WITH), LEFT JOIN, SUM, COUNT, GROUP BY, arithmetic operator
 WITH base AS (
   SELECT
     SUM(v.completed) AS total_sum,
@@ -27,7 +29,8 @@ SELECT
 FROM base
 ORDER BY completition_rate DESC;
 
--- Idioma favorito para el anime
+-- Exercise 17: Favorite language for the Anime genre
+-- Concepts: Multiple CTEs (WITH x2), INNER JOIN, WHERE, GROUP BY, ROW_NUMBER, PARTITION BY
 WITH base AS (
   SELECT
     m.main_genre AS genre,
@@ -56,7 +59,8 @@ SELECT
 FROM second_base
 WHERE rn = 1;
 
--- Horas consumidas por genero
+-- Exercise 18: Hours consumed by genre
+-- Concepts: LEFT JOIN, SUM, GROUP BY, ORDER BY DESC, division (/ 60)
 SELECT
   m.main_genre,
   SUM(v.watch_time_minutes)/60 AS horas_consumidas

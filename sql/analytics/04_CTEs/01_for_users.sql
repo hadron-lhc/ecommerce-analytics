@@ -1,4 +1,5 @@
--- Encontrar los usuarios cuyo watch time sea mayor al promedio
+-- Exercise 27: Users with watch time above global average
+-- Concepts: CTE (WITH), CROSS JOIN, AVG, WHERE, LIMIT
 WITH base AS (
   SELECT
     AVG(watch_time_minutes) AS promedio
@@ -8,13 +9,13 @@ SELECT
   v.user_id,
   v.watch_time_minutes,
   b.promedio AS promedio_global
-
 FROM viewing_session v
 CROSS JOIN base b
 WHERE v.watch_time_minutes > b.promedio
 LIMIT 5;
 
--- Encontrar usuarios que consuman mas anime que el promedio de usuarios
+-- Exercise 28: Users who watch more anime than average
+-- Concepts: CTE (WITH), JOIN, WHERE, GROUP BY, subquery, AVG, ORDER BY DESC, LIMIT
 WITH anime_per_user AS (
   SELECT
     v.user_id,
@@ -36,7 +37,8 @@ WHERE total_anime_minutes > (
 ORDER BY total_anime_minutes DESC
 LIMIT 5;
 
--- Top usuario dentro de cada genero
+-- Exercise 29: Top user (highest watch time) within each genre
+-- Concepts: Multiple CTEs (WITH x2), JOIN, SUM, GROUP BY, RANK, PARTITION BY, ORDER BY
 WITH minutes_per_user_genre AS (
   SELECT
     vs.user_id,

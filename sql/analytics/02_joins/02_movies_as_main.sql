@@ -1,4 +1,5 @@
--- Cuantas veces fue vista cada película (top 10 películas mas vistas)
+-- Exercise 13: Top 10 most viewed movies
+-- Concepts: LEFT JOIN, GROUP BY, COUNT, ORDER BY DESC, LIMIT
 SELECT
   m.title,
   COUNT(v.movie_id) as cantidad
@@ -9,7 +10,8 @@ GROUP BY m.movie_id
 ORDER BY cantidad DESC
 LIMIT 10;
 
---  Genero mas visto
+-- Exercise 14: Most viewed genre
+-- Concepts: LEFT JOIN, GROUP BY, COUNT, ORDER BY DESC, LIMIT
 SELECT
   m.main_genre,
   COUNT(v.viewing_session_id) AS vistas

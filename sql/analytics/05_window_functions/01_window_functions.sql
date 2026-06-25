@@ -1,4 +1,5 @@
--- Raking de usuarios por watch_time
+-- Exercise 32: Session ranking per user (ROW_NUMBER)
+-- Concepts: ROW_NUMBER, PARTITION BY, ORDER BY DESC, LIMIT
 SELECT
   user_id,
   watch_time_minutes,
@@ -9,7 +10,8 @@ SELECT
 FROM viewing_session
 LIMIT 10;
 
--- Ranking películas por cantidad de visualizaciones
+-- Exercise 33: Movie ranking by view count (RANK)
+-- Concepts: CTE (WITH), COUNT, GROUP BY, RANK, ORDER BY DESC, LIMIT
 WITH base AS (
   SELECT
     movie_id,
@@ -26,7 +28,8 @@ SELECT
 FROM base
 LIMIT 10;
 
--- Top películas por genero (ROW_NUMBER)
+-- Exercise 34: Top 5 movies per genre (ROW_NUMBER)
+-- Concepts: Multiple CTEs (WITH x2), JOIN, COUNT, GROUP BY, ROW_NUMBER, PARTITION BY
 WITH base AS (
   SELECT
     m.movie_id,
@@ -55,7 +58,8 @@ SELECT
 FROM top
 WHERE rn <= 5;
 
--- Segunda película mas vista por genero (RANK)
+-- Exercise 35: Second most viewed movie per genre (RANK)
+-- Concepts: Multiple CTEs (WITH x2), JOIN, COUNT, GROUP BY, RANK, PARTITION BY
 WITH base AS (
   SELECT
     m.movie_id,
@@ -84,8 +88,8 @@ SELECT
 FROM top
 WHERE rnk = 2;
 
-
--- Por cada usuario obtener su session
+-- Exercise 36: First session per user
+-- Concepts: CTE (WITH), MIN, GROUP BY, ORDER BY
 WITH base AS (
   SELECT
     user_id,
@@ -99,8 +103,8 @@ SELECT
 FROM base
 ORDER BY primer_fecha;
 
-
--- Por cada usuario obtener su ultima session
+-- Exercise 37: Last session per user
+-- Concepts: CTE (WITH), MAX, GROUP BY, ORDER BY DESC
 WITH base AS (
   SELECT
     user_id,
@@ -114,8 +118,8 @@ SELECT
 FROM base
 ORDER BY ultima_sesion DESC;
 
-
--- Diferencia de dias entre sesiones consecutivas
+-- Exercise 38: Day difference between consecutive sessions
+-- Concepts: CTE (WITH), LAG, PARTITION BY, ORDER BY, type casting (::date), date subtraction
 WITH base AS (
   SELECT
     started_at AS sesion_actual,
